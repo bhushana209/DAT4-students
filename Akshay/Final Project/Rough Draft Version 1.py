@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Fri Feb 20 11:47:59 2015
+
+@author: Akshay
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Mon Jan 26 15:56:03 2015
 
 @author: Akshay
@@ -122,9 +129,15 @@ import pandas.io.data
 from pandas import Series, DataFrame
 
 #an example using Apple stock
+aapl = {}
 aapl = pd.io.data.get_data_yahoo('AAPL', 
                                  start=datetime.datetime(2007, 10, 1), 
                                  end=datetime.datetime(2008, 1, 1))
+                                 
+aapl = aapl.to_dict()                                
+
+for key in aapl: 
+    print aapl['Low']
                                  
 
 
@@ -182,8 +195,13 @@ That way, it's there's a standard form for creating data visualizations
 ''''
 
 '''FUNCTION'''
+
+gtdr_USairlines = gtdr[(gtdr.targsubtype1 == 42)]
+
+
+
 financial_effect = {}
-time_axis = {}
+
 def stockdata(df, ticker, timedelta, unit_of_time, industry):
     unique_dataframe_name = "%s_%s_%s_%s" % (industry, ticker, timedelta, unit_of_time)
 #    stockdata_columns = range(timedelta)
@@ -192,76 +210,111 @@ def stockdata(df, ticker, timedelta, unit_of_time, industry):
     for attack in df.iterrows():
         start_time = datetime.datetime(int(attack[1][1]), int(attack[1][2]), int(attack[1][3]))
         end_time = start_time + datetime.timedelta(days = timedelta)
-        diff = end_time - start_time 
-
-        date_list = []     
-
-        for i in range (diff.days + 1):
-            date_list.append((start_time + datetime.timedelta(i)).strftime('%m/%d/%Y'))
-
+        
         finance_data_raw = pd.io.data.get_data_yahoo(str(ticker),
                                        start=datetime.datetime(int(attack[1][1]), int(attack[1][2]), int(attack[1][3])),
                                        end=start_time + datetime.timedelta(days = timedelta))
+        finance_data_raw = finance_data_raw.to_dict()                                
         financial_effect[unique_dataframe_name] = financial_effect.get(unique_dataframe_name, []) + [finance_data_raw]
-        time_axis[unique_dataframe_name] = time_axis.get(unique_dataframe_name, []) + [date_list]
+        
+        print financial_effect
 
-    print financial_effect
-    print time_axis
-
-
-
-stockdata(gtdr_USairlines, '^XAL', 20, 'days', 'airlines')
+stockdata(gtdr_USairlines, 'AAPL', 20, 'days', 'airlines')
 
 
-financial_effect['airlines_^XAL_20_days'][0]['Close']
-time_axis['airlines_^XAL_20_days'][0]
 
 
-#trying to plot one of these attacks with financial data
+y = financial_effect['airlines_AAPL_20_days'][0]['Close'].values()
 
-y =  financial_effect['airlines_^XAL_20_days'][0]['Close'][0:]
-x = time_axis['airlines_^XAL_20_days'][0][1:]
-
-fig, ax = plt.subplots()
-ax.plot(x, y, 'o-')
-fig.autofmt_xdate()
-
-N = 
-
-fig = plt.figure
-
-sns.set(style='whitegrid', palette="deep", font='Arial')
 
 
 
 
 len(y)
-
-plt.plot(x, y, linewidth=2.0)
-
+len(x)
 
 
 
 
 
-finance_data[1]
 
 
-from datetime import date, timedelta
+y = []
+for i in range(4):
+    y = []
+    for key in sorted(financial_effect['airlines_AAPL_20_days'][i]['Close']):
+        #x.append(key)
+        y.append(financial_effect['airlines_AAPL_20_days'][i]['Close'][key])#.strftime('%D'))
+    x = range(len(y))    
+    plt.plot(x,y)
 
-d1 = datetime.date(2008,8,15)
-d2 = datetime.date(2008,9,15)
+for key in financial_effect['airlines_AAPL_20_days'][0]['Close'].keys():
+    x.append(key)#.strftime('%D'))
+    
 
-# this will give you a list containing all of the dates
-dd = [d1 + datetime.timedelta(days=x) for x in range((d2-d1).days + 1)]
-
-
-for x in dd:
-    print x
+plt.plot(x,y)
 
 
-d1 = datetime.date(2008,8,15)
-d2 = datetime.date(2008,9,15)
-diff = d2 - d1
-for i in range(diff.days + 1):
-    print (d1 + datetime.timedelta(i)).isoformat()
+
+for key in financial_effect['airlines_AAPL_20_days'][0]['Volume'].keys():
+    print key.strftime('%D')
+
+
+import datetime
+print(
+    datetime.datetime.fromtimestamp(
+        int("1284101485")
+    ).strftime('%Y-%m-%d %H:%M:%S')
+)
+
+#Messin' with Matplotlib
+
+from __future__ import print_function
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.mlab as mlab
+import matplotlib.cbook as cbook
+import matplotlib.ticker as ticker
+
+
+
+datafile = cbook.get_sample_data('aapl.csv', asfileobj=False)
+print ('loading %s' % datafile)
+r = mlab.csv2rec(datafile)
+
+r.sort()
+r = r[-30:]  # get the last 30 days
+
+
+# first we'll do it the default way, with gaps on weekends
+fig, ax = plt.subplots()
+ax.plot(r.date, r.adj_close, 'o-')
+fig.autofmt_xdate()
+
+
+N = len(r)
+ind = np.arange(N)  # the evenly spaced plot indices
+
+def format_date(x, pos=None):
+    thisind = np.clip(int(x+0.5), 0, N-1)
+    return r.date[thisind].strftime('%Y-%m-%d')
+
+fig, ax = plt.subplots()
+ax.plot(ind, r.adj_close, 'o-')
+ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_date))
+fig.autofmt_xdate()
+
+plt.show()
+
+####
+
+'''''
+Goes down, goes up, or stays the same? Did it go down or stay the same?
+
+-Did it go down by a significant amount
+-volatility measure increased?
+
+-binary variable of decrease or not decrease
+-logistic regression
+-decision trees
+-date greater than september 11th 2001
