@@ -1,0 +1,72 @@
+#Knobloch Review by Bhushan
+
+##Notes 
+
+I'm going to focus more on suggesting where you might take your analysis than nitpicking your code, as it seems as if you have a working dataframe and are well ahead of me in terms of profiency with pandas, regex, etc. 
+
+You've already noticed noticed is that it seems as if the Crunchbase API is much less exhaustive than the official U.S. patent data and might restrict your project scope to examining the effects of patents on startup funding in particular industries. 
+
+For example, 
+
+`# A simple wrapper for the Crunchbase API v2 for extracting funding round data
+api_url = 'https://api.crunchbase.com/v/2/'
+api_key = '?user_key=' + api_key
+
+def fundingRound(uuid):
+    r = requests.get(api_url + 'funding-round/' + uuid + api_key)
+    round_info = r.json()
+    
+    com = round_info['data']['relationships']['funded_organization']\
+    ['items'][0]['name'].lower()
+    date = parser.parse(round_info['data']['properties']['announced_on'], \
+    yearfirst = True)
+    
+       try:    
+        fund_type = 'series_' + round_info['data']['properties']\
+        ['series'].lower()
+    except:
+        fund_type = round_info['data']['properties']['funding_type']
+    
+    try:    
+        amount = round_info['data']['properties']['money_raised']
+    except:
+        amount = np.nan
+    
+    return {'company': com, 'date': date, 'fund_type': fund_type, \
+    'amount': amount, 'uuid': uuid}
+    
+
+def cbWrap(company):
+    req = requests.get(api_url + 'organization/' + company + api_key)
+    info = req.json()
+    
+    try:        
+        rounds = [str(x['path'][14:]) for x in info['data']['relationships']\
+        ['funding_rounds']['items']]
+        fund_rounds = [fundingRound(x) for x in rounds]
+        return fund_rounds
+            
+    except: 
+        return {'company': company, 'date': np.nan, 'fund_type': np.nan, \
+        'amount': np.nan, 'uuid': np.nan}
+    `
+
+You're looking at publicly declared funding rounds, which I believe (or so a little research on Google suggests) would make sense if a company is actively seeking VC funding. But for an established company, let's say  developing  a new travel goods product line, it would make little sense. 
+
+I think it might make more sense to restrict your analysis to a particular industry that would obvioulsly be in the Crunchbase database. 
+
+I did a bit of research, and that seems to be exactly what people in major economics journals have done as well. See
+***http://www.nber.org/digest/jul14/w19947.html***
+***https://ideas.repec.org/a/eee/respol/v43y2014i6p956-989.html***
+
+
+I'm sure you've thought of this, but I think it would give you a lot cleaner data if you delved into a specific type of patent. This is especially true since the patent data already sorts a lot of that for you
+
+`patents.main_class_title` already sorts a lot of the topics for you and could give you an easy way to group similar types of patents by industry. 
+
+
+I also think that you DO NOT want to look at total funding amount as your dependent variable. Most journal articles looking at the effect of patents on funding raised look at round one funding. Total funding occurs over years and things like businesses plans, industry growth, have a greater effect than whether or not they have a patent. 
+
+As for statistical methods I think you would want to see whether having a patent filing before round 1 funding (0 or 1 - categorical) and maybe other variables would affect round 1 funding amount. 
+
+Hope that helps - I'm typing this after pulling an all-nighter to write a term paper so feel free to backchannel me if you have more questions!
