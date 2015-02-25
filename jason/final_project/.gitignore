@@ -1,0 +1,12 @@
+
+# ignore files in data
+data/
+!data/company_agg_funds.csv
+!data/test_company_funds.csv
+
+# ignore background docs
+USPTOPatentsDatabaseConstruction.pdf
+Extracting_and_Formatting.pdf
+
+# ignore cloned patentprocessor code
+code/patentprocessor
